@@ -16,7 +16,8 @@
 HWC_PATH := $(call my-dir)
 
 # Add validation directory to the include path
-LOCAL_C_INCLUDES += $(HWC_PATH)/val
+LOCAL_C_INCLUDES += $(HWC_PATH)/val \
+                    $(HWC_PATH)/lib
 
 # define INTEL_HWC_ANDROID_VERSION (e.g., 4.3.2 would be 432)
 ifeq ($(PLATFORM_VERSION),O)

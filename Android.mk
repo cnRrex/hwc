@@ -33,7 +33,8 @@ ifeq ($(INTEL_HWC_ENABLE_BUILD),true)
         $(LOCAL_PATH)/drm/Android.mk \
         $(LOCAL_PATH)/gen/Android.mk \
         $(LOCAL_PATH)/$(INTEL_HWC_BUILD_PLATFORM)/Android.mk \
-        $(LOCAL_PATH)/libhwcservice/Android.mk
+        $(LOCAL_PATH)/libhwcservice/Android.mk \
+        $(LOCAL_PATH)/lib/Android.mk
 
     # INTEL_HWC_BUILD_CONTROL_PANEL is set to decide if build HdmiSettings control panel.
     # It would be set from the BoardConfig most likely.

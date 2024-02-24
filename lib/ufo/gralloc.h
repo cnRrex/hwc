@@ -388,6 +388,7 @@ typedef struct intel_ufo_buffer_media_details_t
             uint32_t bottom;
         } rect;
     } dirty;                    // Dirty region hint.
+    uint64_t timestamp;         // cnRrex: assume it exit in M platform
     
 #ifdef __cplusplus
     intel_ufo_buffer_media_details_t() : magic(sizeof(*this)) { }
@@ -399,8 +400,8 @@ typedef struct intel_ufo_buffer_media_details_t
  * Buffer details interface
  * INTEL_UFO_GRALLOC_BUFFER_DETAILS_LEVEL defines the default.
  */
-#define INTEL_UFO_GRALLOC_MEDIA_DETAILS_LEVEL 1
-typedef struct intel_ufo_buffer_media_details_1_t intel_ufo_buffer_media_details_t;
+#define INTEL_UFO_GRALLOC_MEDIA_DETAILS_LEVEL 0
+//typedef struct intel_ufo_buffer_media_details_1_t intel_ufo_buffer_media_details_t;
 
 
 /**
