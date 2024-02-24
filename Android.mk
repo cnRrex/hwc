@@ -14,34 +14,8 @@
 
 LOCAL_PATH:= $(call my-dir)
 
-INTEL_HWC_ENABLE_BUILD := false
+# INTEL_HWC_ENABLE_BUILD := false
 INTEL_HWC_EXPECTED_PATH := hardware/intel/hwc
-
-# If this variable is set at all, then we check the value. If it matches the name of the
-# directory that contains this Android.mk file then we build this version
-ifneq ($(INTEL_HWC_ALWAYS_BUILD),)
-    ifeq ($(INTEL_HWC_ALWAYS_BUILD), $(lastword $(subst /, ,$(LOCAL_PATH))))
-        INTEL_HWC_ENABLE_BUILD := true
-    endif
-else
-    ifneq ($(BOARD_GRAPHIC_IS_GEN), true)
-        INTEL_HWC_ENABLE_BUILD := false
-    else ifeq ($(INTEL_HWC_FROM_PREBUILTS), true)
-        # Disable the source build if the config requests building from prebuilts.
-        INTEL_HWC_ENABLE_BUILD := false
-    else ifeq ($(LOCAL_PATH),$(INTEL_HWC_EXPECTED_PATH))
-        # If we are building in the expected place in the repo, then enable
-        INTEL_HWC_ENABLE_BUILD := true
-    else ifeq ($(wildcard $(INTEL_HWC_EXPECTED_PATH)/Android.mk),)
-        # If we are building elsewhere, and the expected place doesnt contain the HWC then enable
-        # Eg in UFO/Source/Android/hwc when hardware/intel/hwc/Android.mk IS NOT present
-        INTEL_HWC_ENABLE_BUILD := true
-    else
-        # If we are building elsewhere and the expected place does contain HWC, then skip this build.
-        # Eg in UFO/Source/Android/hwc when hardware/intel/hwc/Android.mk IS present
-        INTEL_HWC_ENABLE_BUILD := false
-    endif
-endif
 
 ifeq ($(INTEL_HWC_ENABLE_BUILD),true)
 
