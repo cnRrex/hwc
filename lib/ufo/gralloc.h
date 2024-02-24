@@ -140,7 +140,7 @@ extern "C" {
 #define INTEL_UFO_GRALLOC_MODULE_PERFORM_GET_BO_METADATA        32 // (buffer_handle_t, uint32_t offset, uint32_t size, void *data)
 #define INTEL_UFO_GRALLOC_MODULE_PERFORM_BO_FALLOCATE           33 // (buffer_handle_t, uint32_t mode, uint64_t offset, uint64_t bytes)
 #define INTEL_UFO_GRALLOC_MODULE_PERFORM_GET_BO_SERIAL_NUMBER   34 // (buffer_handle_t, uint64_t *serial)
-#define INTEL_UFO_GRALLOC_MODULE_PERFORM_SET_BO_FPS             35 // (buffer_handle_t, uint32_t)
+//#define INTEL_UFO_GRALLOC_MODULE_PERFORM_SET_BO_FPS             35 // (buffer_handle_t, uint32_t)
 
 #if 1 // reserved for internal use only !
 #define INTEL_UFO_GRALLOC_MODULE_PERFORM_PRIVATE_0           -1000
@@ -328,6 +328,7 @@ typedef struct intel_ufo_buffer_details_1_t intel_ufo_buffer_details_t;
 /** Structure with additional info about buffer that could be changed after allocation.
  * \see INTEL_UFO_GRALLOC_MODULE_PERFORM_QUERY_MEDIA_DETAILS
  */
+/*
 typedef struct intel_ufo_buffer_media_details_1_t
 {
     uint32_t magic;             // [in] Size of this struct
@@ -361,6 +362,37 @@ typedef struct intel_ufo_buffer_media_details_1_t
     intel_ufo_buffer_media_details_1_t() : magic(sizeof(*this)) { }
 #endif
 } intel_ufo_buffer_media_details_1_t;
+*/
+//back to a6 ufo api
+typedef struct intel_ufo_buffer_media_details_t
+{
+    uint32_t magic;             // [in] Size of this struct
+    uint32_t pavp_session_id;   // PAVP Session ID.
+    uint32_t pavp_instance_id;  // PAVP Instance.
+    uint32_t yuv_color_range;   // YUV Color range.
+    uint32_t client_id;         // HWC client ID.
+    uint32_t is_updated;        // frame updated flag
+    uint32_t is_encoded;        // frame encoded flag
+    uint32_t is_encrypted;
+    uint32_t is_key_frame;
+    uint32_t is_interlaced;
+    uint32_t is_mmc_capable;
+    uint32_t compression_mode;
+    uint32_t codec;
+    struct {
+        uint32_t is_valid;
+        struct {
+            uint32_t left;
+            uint32_t top;
+            uint32_t right;
+            uint32_t bottom;
+        } rect;
+    } dirty;                    // Dirty region hint.
+    
+#ifdef __cplusplus
+    intel_ufo_buffer_media_details_t() : magic(sizeof(*this)) { }
+#endif
+} intel_ufo_buffer_media_details_t;
 
 
 /**

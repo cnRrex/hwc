@@ -77,7 +77,7 @@ public:
     int setBufferCameraDetails(buffer_handle_t handle, const intel_ufo_buffer_camera_details_t*) const;
     int getBufferCameraDetails(buffer_handle_t handle, intel_ufo_buffer_camera_details_t*) const;
     int setBufferTimestamp(buffer_handle_t handle, uint64_t) const;
-    int setBufferFps(buffer_handle_t handle, uint32_t) const;
+    //int setBufferFps(buffer_handle_t handle, uint32_t) const;
     int setBufferMetadata(buffer_handle_t handle, uint32_t offset, uint32_t size, const void*) const;
     int getBufferMetadata(buffer_handle_t handle, uint32_t offset, uint32_t size, void*) const;
     int getBufferSerialNumber(buffer_handle_t handle, uint64_t*) const;
