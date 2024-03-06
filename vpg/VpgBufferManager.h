@@ -26,15 +26,17 @@
 #include <ufo/gralloc.h>
 
 // This check is good enough for now...
-#define HAVE_GRALLOC_RC_API ((ANDROID_VERSION >= 600) && (INTEL_UFO_GRALLOC_MEDIA_API_STAGE >= 2))
+//#define HAVE_GRALLOC_RC_API ((ANDROID_VERSION >= 600) && (INTEL_UFO_GRALLOC_MEDIA_API_STAGE >= 2))
+#define HAVE_GRALLOC_RC_API 0
+
+namespace grallocclient
+{
+    class GrallocClient;
+};
 
 
 namespace intel {
 namespace ufo {
-namespace gralloc
-{
-    class GrallocClient;
-};
 namespace hwc {
 
 
@@ -42,7 +44,7 @@ class Drm;
 class VpgPlatform;
 class DisplayCaps;
 
-using namespace intel::ufo::gralloc;
+using namespace grallocclient;
 
 // VpgBufferManager is a platform specific class to track buffer allocations.
 class VpgBufferManager : public BufferManager, public Singleton<VpgBufferManager>
@@ -138,31 +140,31 @@ public:
     // Implements AbstractBufferManager.
     // Specify this buffer as a SurfaceFlinger RenderTarget for a display.
     // handle must be non-NULL.
-    virtual void setSurfaceFlingerRT( buffer_handle_t handle, uint32_t displayIndex );
+    //virtual void setSurfaceFlingerRT( buffer_handle_t handle, uint32_t displayIndex );
 
     // Implements AbstractBufferManager.
     // This will be called before leaving onPrepare to inform the buffer manager
     // that SurfaceFlinger compositions will not be used on a display.
-    virtual void purgeSurfaceFlingerRenderTargets( uint32_t displayIndex );
+    //virtual void purgeSurfaceFlingerRenderTargets( uint32_t displayIndex );
 
     // Implements AbstractBufferManager.
     // This will be called before leaving onPrepare to inform the buffer manager
     // that SurfaceFlinger compositions will be used on a display.
     // If the buffermanager implementation purges unused SF buffers then it MUST
     // implement this to ensure SF buffers are ready in time.
-    virtual void realizeSurfaceFlingerRenderTargets( uint32_t displayIndex );
+    //virtual void realizeSurfaceFlingerRenderTargets( uint32_t displayIndex );
 
     // Implements AbstractBufferManager.
     // Purge the backing for this buffer.
     // Returns the full buffer size in bytes if succesful.
     // Returns zero if the call fails or is not implemented.
-    virtual uint32_t purgeBuffer( buffer_handle_t handle );
+    //virtual uint32_t purgeBuffer( buffer_handle_t handle );
 
     // Implements AbstractBufferManager.
     // Realize the backing for this buffer.
     // Returns the full buffer size in bytes if succesful.
     // Returns zero if the call fails or is not implemented.
-    virtual uint32_t realizeBuffer( buffer_handle_t handle );
+    //virtual uint32_t realizeBuffer( buffer_handle_t handle );
 
     // Implements AbstractBufferManager.
     // Dump info about the buffermanager.
@@ -171,7 +173,7 @@ public:
 private:
 
     // Number of frames a SF RT must be unused for before its memory is purged.
-    static const uint32_t mPurgeSurfaceFlingerRTThreshold = 1;
+    // static const uint32_t mPurgeSurfaceFlingerRTThreshold = 1;
 
     // Gralloc Hwc Callbacks + VpgBufferManager.
     class GrallocCallbacks
@@ -182,25 +184,27 @@ private:
             mMagic( MAGIC ),
             mpVpgBufferManager( pVpgBufferManager )
         {
-            memset( &mHwcProcs, 0, sizeof( mHwcProcs ) );
-            mHwcProcs.pre_buffer_alloc = GrallocCallbacks::preBufferAlloc;
-            mHwcProcs.post_buffer_alloc = GrallocCallbacks::postBufferAlloc;
-            mHwcProcs.post_buffer_free = GrallocCallbacks::postBufferFree;
+            //memset( &mHwcProcs, 0, sizeof( mHwcProcs ) );
+            //mHwcProcs.pre_buffer_alloc = GrallocCallbacks::preBufferAlloc;
+            //mHwcProcs.post_buffer_alloc = GrallocCallbacks::postBufferAlloc;
+            //mHwcProcs.post_buffer_free = GrallocCallbacks::postBufferFree;
         }
 
-        const intel_ufo_hwc_procs_t* getProcs( void ) { return &mHwcProcs; }
+        // const intel_ufo_hwc_procs_t* getProcs( void ) { return &mHwcProcs; }
 
     protected:
         enum
         {
-            MAGIC = ANDROID_NATIVE_MAKE_CONSTANT( 'H', 'w', 'c', 'T' )
+            //MAGIC = ANDROID_NATIVE_MAKE_CONSTANT( 'H', 'w', 'c', 'T' )
+            MAGIC = 0xDCBAABCD
         };
 
-        intel_ufo_hwc_procs_t   mHwcProcs;
+        //intel_ufo_hwc_procs_t   mHwcProcs;
         int                     mMagic;
         VpgBufferManager*       mpVpgBufferManager;
 
         // intel_ufo_hwc_procs_t callback functions.
+        /*
         static int preBufferAlloc( const struct intel_ufo_hwc_procs_t* procs,
                                    int* width, int* height, int* format, int* usage,
                                    uint32_t* fb_format, uint32_t* flags );
@@ -209,13 +213,16 @@ private:
                                      const intel_ufo_buffer_details_t* details );
         static void postBufferFree( const struct intel_ufo_hwc_procs_t* procs,
                                    buffer_handle_t );
+        */
     };
-
+/*
 #if INTEL_UFO_GRALLOC_HAVE_BUFFER_DETAILS_1 && (INTEL_UFO_GRALLOC_BUFFER_DETAILS_LEVEL < 1)
     typedef intel_ufo_buffer_details_1_t buffer_details_t;
 #else
     typedef intel_ufo_buffer_details_t buffer_details_t;
 #endif
+*/
+    typedef BufferMetaData buffer_details_t;
 
     // Managed Buffer.
     class Buffer : public BufferManager::Buffer
@@ -238,7 +245,7 @@ private:
         uint32_t                    mFbBlend;       // Fb handle for blending (or 0 if not yet acquired).
         uint32_t                    mFbOpaque;      // Fb handle for opaque (or 0 if not yet acquired).
         int                         mDmaBuf;        // DmaBuf handle (or -1 if not yet acquired).
-        uint32_t                    mLastUsedFrame; // The frame for which this buffer was last used.
+        //uint32_t                    mLastUsedFrame; // The frame for which this buffer was last used.
         buffer_handle_t             mHandle;        // Gralloc Handle.
 #if INTEL_HWC_INTERNAL_BUILD
         uint32_t                    mAccessed;      // Count of accesses since last validateCache invocation.
@@ -250,32 +257,32 @@ private:
         bool                        mbDeviceIdAllocFailed:1;// Initial attempt to allocate fb/dmabuf handles failed
                                                             // (implies that this buffer must be composed)
         bool                        mbDmaBufFromPrime:1;    // When true, mDmaBuf comes from Gralloc prime.
-        bool                        mbPurged:1;             // Is this buffer purged?
-        int32_t                     mSurfaceFlingerRT;      // Is this buffer a SF RT? (==displayIndex or -1 if not a SF RT).
+        //bool                        mbPurged:1;             // Is this buffer purged?
+        //int32_t                     mSurfaceFlingerRT;      // Is this buffer a SF RT? (==displayIndex or -1 if not a SF RT).
         uint32_t                    mUsageFlags;    // Flags specifying where a buffer has been used.
 
         // Purge the buffer - releasing physical memory.
         // Returns size in bytes of memory released.
-        uint32_t purge( void );
+        //uint32_t purge( void );
 
         // Realize the buffer - acquiring physical memory.
         // Returns size in bytes of memory acquired.
-        uint32_t realize( void );
+        //uint32_t realize( void );
     };
 
     // When Gralloc creates a buffer we need to be notified.
     // This will add the buffer to the set of managed buffers.
     // intel_ufo_buffer_details_t can be specified in pBi if it is known; it will be retrieved if pBi is NULL.
-    void notifyBufferAlloc( buffer_handle_t handle, const intel_ufo_buffer_details_t* pBi );
+    //void notifyBufferAlloc( buffer_handle_t handle, const intel_ufo_buffer_details_t* pBi );
 
     // When Gralloc destroys a buffer we need to be notified.
     // This will remove the buffer from the set of managed buffers.
     // The removed buffer will be marked orphaned and then released.
-    void notifyBufferFree( buffer_handle_t handle );
+    //void notifyBufferFree( buffer_handle_t handle );
 
     // Wait for any writes to the buffer to complete.
     // handle must be non-NULL.
-    void waitRendering( buffer_handle_t handle, nsecs_t timeoutNs );
+    //void waitRendering( buffer_handle_t handle, nsecs_t timeoutNs );
 
     // Get buffer details for a buffer.
     // handle must be non-NULL.
@@ -326,11 +333,11 @@ private:
     // The lock MUST be held when calling this.
     // Returns the managed buffer if successful.
     // Returns NULL if not successful.
-    sp<Buffer> addBuffer( buffer_handle_t handle, const buffer_details_t* pBi = NULL );
+    //sp<Buffer> addBuffer( buffer_handle_t handle, const buffer_details_t* pBi = NULL );
 
     // Remove an existing buffer.
     // The lock MUST be held when calling this.
-    void removeBuffer( buffer_handle_t handle );
+    //void removeBuffer( buffer_handle_t handle );
 
     // Complete managed buffer details (info, bo, fb, dmaBuf).
     // Fb creation requires knowledge of the blending requirement - pbBlend must be provided to generate the fb.
@@ -342,19 +349,19 @@ private:
 #endif
 
     // Update any buffer hints.
-    void processBufferHints( );
+    //void processBufferHints( );
 
     // Manipulate the per thread tiling allocation masks
-    uint32_t getTilingMask();
-    void setTilingMask(uint32_t mask);
-    void resetTilingMask();
+    //uint32_t getTilingMask();
+    //void setTilingMask(uint32_t mask);
+    //void resetTilingMask();
 
     Drm&            mDrm;                   // Drm cached in C'tor.
     GrallocClient&  mGralloc;               // Gralloc client cached in C'tor.
     GrallocCallbacks mGrallocCallbacks;     // Callback structure registered with Gralloc.
     Mutex           mLock;                  // Lock for public entry points - to protect managed set list.
     Mutex           mTrackerLock;           // Lock for tracker register/deregister/notifications.
-    std::map<buffer_handle_t, sp<Buffer> > mManagedBuffers;   // Set of currently managed buffers (cached state).
+    //std::map<buffer_handle_t, sp<Buffer> > mManagedBuffers;   // Set of currently managed buffers (cached state).
     std::vector<Tracker*> mTrackers;        // Set of registered trackers.
     uint32_t        mFrameCounter;          // Incrementing counter used to timestamp accesses (frame).
 
@@ -364,8 +371,8 @@ private:
     Option          mOptionMaxYTileWidth;   // Maximum width of surface that we allow to be allocated as Y tiling
     Option          mOptionRenderCompress;  // Render Compression is supported for appropriate formats (Y tiled)
 
-    Mutex                     mTLLock;      // Lock for thread-local override vector.
-    std::map<pid_t, uint32_t> mTLTileMask;  // Thread-local override.
+    //Mutex                     mTLLock;      // Lock for thread-local override vector.
+    //std::map<pid_t, uint32_t> mTLTileMask;  // Thread-local override.
 };
 
 }; // namespace hwc

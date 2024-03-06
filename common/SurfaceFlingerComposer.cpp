@@ -401,7 +401,7 @@ void SurfaceFlingerComposer::onPrepareEnd()
     for (uint32_t d = 0; d < mNumDisplays; d++)
     {
         hwc_display_contents_1_t* pDisplayContents = mppDisplayContents[d];
-        bool bSFRTRequired = false;
+        //bool bSFRTRequired = false;
         if ( pDisplayContents )
         {
             int32_t composeMin = mCompositions[d].composeMin();
@@ -425,8 +425,9 @@ void SurfaceFlingerComposer::onPrepareEnd()
                 mCompositions[d].mLastComposedMax = composeMax;
             }
 
-            bSFRTRequired = ( composeMin != -1 ) || ( composeMax != -1 );
+            //bSFRTRequired = ( composeMin != -1 ) || ( composeMax != -1 );
         }
+        /*
         if ( bSFRTRequired )
         {
             AbstractBufferManager::get().realizeSurfaceFlingerRenderTargets( d );
@@ -435,6 +436,7 @@ void SurfaceFlingerComposer::onPrepareEnd()
         {
             AbstractBufferManager::get().purgeSurfaceFlingerRenderTargets( d );
         }
+        */
     }
 }
 

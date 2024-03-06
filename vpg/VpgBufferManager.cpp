@@ -21,7 +21,7 @@
 #include "Utils.h"
 #include <drm_fourcc.h>
 
-using namespace intel::ufo::gralloc;
+using namespace grallocclient;
 
 namespace intel {
 namespace ufo {
@@ -40,17 +40,19 @@ namespace hwc {
 #define OPTION_DEFAULT_Y_TILING            0
 #define OPTION_DEFAULT_RC                  0
 #endif
-
+/*
 #if defined(INTEL_UFO_GRALLOC_MODULE_PERFORM_BO_FALLOCATE)
 #define INTEL_UFO_HWC_HAVE_FALLOC          1
 #else
 #define INTEL_UFO_HWC_HAVE_FALLOC          0
 #endif
+*/
+#define INTEL_UFO_HWC_HAVE_FALLOC          0
 
 // Enable purging if we have fallocate.
 // - or - if debug/testing then the paths can still be run (albeit with zero effect).
 #define INTEL_UFO_HWC_WANT_PURGE           (INTEL_UFO_HWC_HAVE_FALLOC || 0)
-
+/*
 #if INTEL_HWC_INTERNAL_BUILD
 // Utility to get memory allocation.
 static uint32_t getFreeMemory(void)
@@ -81,6 +83,7 @@ static uint32_t getFreeMemory(void)
 #else
 static inline uint32_t getFreeMemory(void) { return 0; }
 #endif
+*/
 
 AbstractBufferManager& AbstractBufferManager::get()
 {
@@ -112,7 +115,7 @@ VpgBufferManager::Buffer::Buffer( GrallocClient& gralloc, Drm& drm, buffer_handl
     mFbBlend( 0 ),
     mFbOpaque( 0 ),
     mDmaBuf( -1 ),
-    mLastUsedFrame( 0 ),
+//    mLastUsedFrame( 0 ),
     mHandle( handle ),
 #if INTEL_HWC_INTERNAL_BUILD
     mAccessed( 0 ),
@@ -120,8 +123,8 @@ VpgBufferManager::Buffer::Buffer( GrallocClient& gralloc, Drm& drm, buffer_handl
     mbOrphaned( false ),
     mbDeviceIdAllocFailed( false ),
     mbDmaBufFromPrime( false ),
-    mbPurged( false ),
-    mSurfaceFlingerRT( -1 ),
+//    mbPurged( false ),
+//    mSurfaceFlingerRT( -1 ),
     mUsageFlags(0)
 {
     if ( pBi )
@@ -168,7 +171,7 @@ void VpgBufferManager::Buffer::setPrime( void )
     if ( mInfo.prime >= 0 )
         mPrimeFd = mInfo.prime;
 }
-
+/*
 uint32_t VpgBufferManager::Buffer::purge( void )
 {
 #if INTEL_UFO_HWC_WANT_PURGE
@@ -219,6 +222,7 @@ uint32_t VpgBufferManager::Buffer::realize( void )
     ALOGD_IF( BUFFER_MANAGER_DEBUG, "Could not realize buffer %s", dump().string() );
     return 0;
 }
+*/
 
 void VpgBufferManager::Buffer::clearBufferInfo( void )
 {
@@ -228,8 +232,8 @@ void VpgBufferManager::Buffer::clearBufferInfo( void )
     mInfo.format        = 0;
     mInfo.usage         = 0;
     mInfo.prime         = 0;
-    mInfo.fb            = 0;
-    mInfo.fb_format     = 0;
+    //mInfo.fb            = 0;
+    //mInfo.fb_format     = 0;
     mInfo.pitch         = 0;
     mInfo.size          = 0;
     mInfo.allocWidth    = 0;
@@ -258,7 +262,7 @@ String8 VpgBufferManager::Buffer::dump( bool bExpand )
               " prime %3d [Gralloc prime %d]"
               " hwc bo %3u fb %3u/%3u dmaBuf %3d"
               " setInfo %d bytes %5d KB deviceIdAllocFailed %d"
-              " refs %u status %s|%s|%s [LU:%5u] %s",
+              " refs %u status %s %s",
               // Key handles and optional expanded description
               this, mHandle, expand.string(),
               mPrimeFd, mInfo.prime,
@@ -270,10 +274,10 @@ String8 VpgBufferManager::Buffer::dump( bool bExpand )
               getStrongCount(),
               // Status (flags)
               mbOrphaned ? "O" : "-",
-              mbPurged ? "P" : "-",
-              mSurfaceFlingerRT >= 0 ? String8::format( "S%d", mSurfaceFlingerRT ).string() : "--",
+//              mbPurged ? "P" : "-",
+//              mSurfaceFlingerRT >= 0 ? String8::format( "S%d", mSurfaceFlingerRT ).string() : "--",
               // Usage
-              mLastUsedFrame,
+//              mLastUsedFrame,
               // Descriptor
               mTag );
     return str;
@@ -291,11 +295,11 @@ VpgBufferManager::VpgBufferManager( ) :
     mOptionRenderCompress("rendercompress", OPTION_DEFAULT_RC,       false)
 {
     // Register with Gralloc.
-    if ( mGralloc.registerHwcProcs( mGrallocCallbacks.getProcs( ) ) != 0 )
-    {
-        ALOGE( "Failed to register Gralloc HWC procs" );
-        ALOG_ASSERT( false );
-    }
+    //if ( mGralloc.registerHwcProcs( mGrallocCallbacks.getProcs( ) ) != 0 )
+    //{
+    //    ALOGE( "Failed to register Gralloc HWC procs" );
+    //    ALOG_ASSERT( false );
+    //}
 
     // disable the render compression option if it's enabled but the kernel doesnt support it
     if (mOptionRenderCompress)
@@ -325,6 +329,7 @@ void VpgBufferManager::unregisterTracker( Tracker& tracker )
     mTrackers.erase(std::remove(mTrackers.begin(), mTrackers.end(), &tracker), mTrackers.end());
 }
 
+/*
 uint32_t VpgBufferManager::getTilingMask()
 {
     Mutex::Autolock _l( mTLLock );
@@ -342,13 +347,14 @@ void VpgBufferManager::resetTilingMask()
     Mutex::Autolock _l( mTLLock );
     mTLTileMask[gettid()] = 0;
 }
+*/
 
 sp<GraphicBuffer> VpgBufferManager::createGraphicBuffer(const char* pchTag, uint32_t w, uint32_t h, int32_t format, uint32_t usage)
 {
     // Avoid Y tiling on internal allocations to reduce DBUF pressure on Gen9+
-    setTilingMask( ~INTEL_UFO_BUFFER_FLAG_Y_TILED );
+    //setTilingMask( ~INTEL_UFO_BUFFER_FLAG_Y_TILED );
     auto ret = BufferManager::createGraphicBuffer(pchTag, w, h, format, usage);
-    resetTilingMask();
+    //resetTilingMask();
     return ret;
 }
 
@@ -356,18 +362,18 @@ sp<GraphicBuffer> VpgBufferManager::createGraphicBuffer(const char* pchTag, uint
                                                uint32_t stride, native_handle_t* handle, bool keepOwnership)
 {
     // Avoid Y tiling on internal allocations to reduce DBUF pressure on Gen9+
-    setTilingMask( ~INTEL_UFO_BUFFER_FLAG_Y_TILED );
+    //setTilingMask( ~INTEL_UFO_BUFFER_FLAG_Y_TILED );
     auto ret = BufferManager::createGraphicBuffer(pchTag, w, h, format, usage, stride, handle, keepOwnership);
-    resetTilingMask();
+    //resetTilingMask();
     return ret;
 }
 
 void VpgBufferManager::reallocateGraphicBuffer(sp<GraphicBuffer>& pGB, const char* pchTag, uint32_t w, uint32_t h, int32_t format, uint32_t usage)
 {
     // Avoid Y tiling on internal allocations to reduce DBUF pressure on Gen9+
-    setTilingMask( ~INTEL_UFO_BUFFER_FLAG_Y_TILED );
+    //setTilingMask( ~INTEL_UFO_BUFFER_FLAG_Y_TILED );
     BufferManager::reallocateGraphicBuffer(pGB, pchTag, w, h, format, usage);
-    resetTilingMask();
+    //resetTilingMask();
 }
 
 void VpgBufferManager::getLayerBufferDetails( Layer* pLayer, Layer::BufferDetails* pBufferDetails )
@@ -484,11 +490,11 @@ void VpgBufferManager::getLayerBufferDetails( Layer* pLayer, Layer::BufferDetail
     pBufferDetails->setTilingFormat    ( tilingFormat );
     // This is ugly, we need to know whether we have timestamp in gralloc or not, - it is in
     // mainline but not 15_33 nor L_MR1_*, Limit to M-Dessert builds.
-#if ((ANDROID_VERSION >= 600) && (INTEL_UFO_GRALLOC_MEDIA_DETAILS_LEVEL))
-    pBufferDetails->setMediaTimestampFps  ( md.timestamp, md.fps );
-#elif ((ANDROID_VERSION >= 600) && (INTEL_UFO_GRALLOC_MEDIA_API_STAGE >= 2))
-    pBufferDetails->setMediaTimestampFps  ( md.timestamp, 0 );
-#endif
+//#if ((ANDROID_VERSION >= 600) && (INTEL_UFO_GRALLOC_MEDIA_DETAILS_LEVEL))
+//    pBufferDetails->setMediaTimestampFps  ( md.timestamp, md.fps );
+//#elif ((ANDROID_VERSION >= 600) && (INTEL_UFO_GRALLOC_MEDIA_API_STAGE >= 2))
+//    pBufferDetails->setMediaTimestampFps  ( md.timestamp, 0 );
+//#endif
     pBufferDetails->setBufferModeFlags(
 #if INTEL_UFO_HWC_HAVE_GRALLOC_FBR
         (bd.usage & (INTEL_UFO_GRALLOC_USAGE_PRIVATE_FBR)) ? FRONT_BUFFER_RENDER :
@@ -598,7 +604,7 @@ void VpgBufferManager::onEndOfFrame( void )
 #if INTEL_HWC_INTERNAL_BUILD
     validateCache( true );
 #endif
-    processBufferHints();
+    //processBufferHints();
     ++mFrameCounter;
 }
 
@@ -629,9 +635,10 @@ ECompressionType VpgBufferManager::getSurfaceFlingerCompression()
 
 String8 VpgBufferManager::dump( void )
 {
+    /*
     Mutex::Autolock _l( mLock );
     uint32_t countBuffers = mManagedBuffers.size();
-    uint32_t totalBytes = 0, totalRealizedBytes = 0, countPurged = 0, countSFRTs = 0;
+    uint32_t totalBytes = 0;
     String8 output("");
     output += String8::format( "Hardware Composer Managed Buffers:\n" );
     for ( auto pair : mManagedBuffers )
@@ -642,19 +649,20 @@ String8 VpgBufferManager::dump( void )
         {
             uint32_t szBytes = pBuffer->mInfo.size;
             totalBytes += szBytes;
-            if ( pBuffer->mbPurged )
-                ++countPurged;
-            else
-                totalRealizedBytes += szBytes;
-            if ( pBuffer->mSurfaceFlingerRT != -1 )
-                ++countSFRTs;
+            //if ( pBuffer->mbPurged )
+            //    ++countPurged;
+            //else
+            //    totalRealizedBytes += szBytes;
         }
     }
-    output += String8::format( "Frame:%u Buffers:%u Bytes:%u KB SFRTs:%u Purged:%u %u KB Realized:%u KB\n",
-        mFrameCounter, countBuffers, totalBytes/1024, countSFRTs, countPurged, (totalBytes-totalRealizedBytes)/1024, totalRealizedBytes/1024 );
+    output += String8::format( "Frame:%u Buffers:%u Bytes:%u KB\n",
+        mFrameCounter, countBuffers, totalBytes/1024;
     return output;
+    */
+    return String8("");
 }
 
+/*
 void VpgBufferManager::notifyBufferAlloc( buffer_handle_t handle, const intel_ufo_buffer_details_t* pBi )
 {
     ALOG_ASSERT( handle );
@@ -685,7 +693,8 @@ void VpgBufferManager::notifyBufferAlloc( buffer_handle_t handle, const intel_uf
     validateCache( );
 #endif
 }
-
+*/
+/*
 void VpgBufferManager::notifyBufferFree( buffer_handle_t handle )
 {
     ALOG_ASSERT( handle );
@@ -714,6 +723,7 @@ void VpgBufferManager::notifyBufferFree( buffer_handle_t handle )
     validateCache( );
 #endif
 }
+*/
 
 bool VpgBufferManager::getBufferDetails( buffer_handle_t handle, bool bBlend, buffer_details_t& bi, uint64_t& deviceId, bool& bufferDeviceIdValid, ETilingFormat& tilingFormat)
 {
@@ -738,7 +748,7 @@ bool VpgBufferManager::getBufferDetails( buffer_handle_t handle, bool bBlend, bu
     deviceId = bBlend ? pBuffer->mFbBlend : pBuffer->mFbOpaque;
     bufferDeviceIdValid = (deviceId != 0);
 
-
+/*
     if ( pBuffer->mSurfaceFlingerRT == -1 )
     {
         // Record frame counter for regular buffers.
@@ -747,6 +757,7 @@ bool VpgBufferManager::getBufferDetails( buffer_handle_t handle, bool bBlend, bu
         //   dedicated purge/realizeSurfaceFlingerRenderTargets() methods.
         pBuffer->mLastUsedFrame = mFrameCounter;
     }
+*/
 
     return true;
 }
@@ -769,7 +780,7 @@ bool VpgBufferManager::getMediaDetails( buffer_handle_t handle, intel_ufo_buffer
     }
     return true;
 }
-
+/*
 void VpgBufferManager::setSurfaceFlingerRT( buffer_handle_t handle, uint32_t displayIndex )
 {
     ALOG_ASSERT( handle );
@@ -782,6 +793,7 @@ void VpgBufferManager::setSurfaceFlingerRT( buffer_handle_t handle, uint32_t dis
         pBuffer->mSurfaceFlingerRT = displayIndex;
     }
 }
+
 
 void VpgBufferManager::purgeSurfaceFlingerRenderTargets( uint32_t displayIndex )
 {
@@ -855,7 +867,9 @@ void VpgBufferManager::realizeSurfaceFlingerRenderTargets( uint32_t displayIndex
 
     }
 }
+*/
 
+/*
 uint32_t VpgBufferManager::purgeBuffer( buffer_handle_t handle )
 {
     INTEL_UFO_HWC_ASSERT_MUTEX_NOT_HELD( mLock );
@@ -877,6 +891,7 @@ uint32_t VpgBufferManager::realizeBuffer( buffer_handle_t handle )
     }
     return 0;
 }
+*/
 
 #if HAVE_GRALLOC_RC_API
 bool VpgBufferManager::getResolveDetails( buffer_handle_t handle, intel_ufo_buffer_resolve_details_t& rd )
@@ -964,27 +979,28 @@ sp<VpgBufferManager::Buffer> VpgBufferManager::acquireCompleteBuffer( buffer_han
 
     Mutex::Autolock _l( mLock );
 
-    const sp<VpgBufferManager::Buffer> pBuffer = mManagedBuffers[handle];
+    //const sp<VpgBufferManager::Buffer> pBuffer = mManagedBuffers[handle];
     sp<VpgBufferManager::Buffer> pUpdateBuffer = NULL;
-    if ( pBuffer == NULL )
-    {
+    //if ( pBuffer == NULL )
+    //{
         // The Gralloc buffer is not part of the managed set.
         // Create a Buffer record for it "just in time".
         // Once this Buffer record has no remaining references then it should be destroyed.
         // => It is effectively already orphaned.
-        Log::alogd( true, "BufferManager: Handle %p is not known - acquire record jit", handle );
+        //Log::alogd( true, "BufferManager: Handle %p is not known - acquire record jit", handle );
+        Log::alogd( true, "BufferManager: Handle %p is acquiring.", handle );
         pUpdateBuffer = new Buffer( mGralloc, Drm::get(), handle, NULL );
         if ( pUpdateBuffer == NULL )
         {
-            ALOGE( "Failed to create 'jit' buffer record" );
+            ALOGE( "Failed to create 'jit' buffer" );
             return NULL;
         }
         pUpdateBuffer->mbOrphaned = true;
-    }
-    else
-    {
-        pUpdateBuffer = pBuffer;
-    }
+    //}
+    //else
+    //{
+    //    pUpdateBuffer = pBuffer;
+    //}
 
 #if INTEL_HWC_INTERNAL_BUILD
     ++pUpdateBuffer->mAccessed;
@@ -1014,6 +1030,7 @@ sp<VpgBufferManager::Buffer> VpgBufferManager::acquireCompleteBuffer( buffer_han
     return pUpdateBuffer;
 }
 
+/*
 sp<VpgBufferManager::Buffer> VpgBufferManager::addBuffer( buffer_handle_t handle,
                                                  const buffer_details_t* pBi )
 {
@@ -1049,6 +1066,7 @@ void VpgBufferManager::removeBuffer( buffer_handle_t handle )
     pDeleteBuffer->mbOrphaned = true;
     Log::alogd( BUFFER_MANAGER_DEBUG, "BufferManager: Orphaning managed buffer %s", pDeleteBuffer->dump().string() );
 }
+*/
 
 void VpgBufferManager::completeDetails( sp<Buffer> pBuffer, buffer_handle_t handle, bool* pbBlend )
 {
@@ -1208,7 +1226,7 @@ void VpgBufferManager::validateDetails( sp<Buffer> pBuffer, buffer_handle_t hand
     }
 }
 #endif
-
+/*
 void VpgBufferManager::processBufferHints( )
 {
 #if HAVE_GRALLOC_RC_API
@@ -1290,7 +1308,8 @@ void VpgBufferManager::processBufferHints( )
     delete[] bufferHints;
 #endif
 }
-
+*/
+/*
 static const char* getTilingMaskString( uint32_t flags )
 {
 #define GRALLOC_FLAG_ADD( F ) if ( flags & INTEL_UFO_BUFFER_FLAG_##F ) str += #F " "
@@ -1305,8 +1324,9 @@ static const char* getTilingMaskString( uint32_t flags )
     return str;
 #undef GRALLOC_FLAG_ADD
 }
+*/
 
-
+/*
 int VpgBufferManager::GrallocCallbacks::preBufferAlloc( const struct intel_ufo_hwc_procs_t* procs,
                                                      int* width, int* height, int* format, int* usage,
                                                      uint32_t* fb_format, uint32_t* flags )
@@ -1415,6 +1435,7 @@ void VpgBufferManager::GrallocCallbacks::postBufferFree( const struct intel_ufo_
     ALOG_ASSERT( pBMGC->mMagic == MAGIC );
     pBMGC->mpVpgBufferManager->notifyBufferFree( handle );
 }
+*/
 
 }; // namespace hwc
 }; // namespace ufo

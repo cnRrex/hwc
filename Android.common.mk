@@ -34,31 +34,11 @@ endif
 HWC_VERSION_GIT_BRANCH := $(shell pushd $(HWC_PATH) > /dev/null; git rev-parse --abbrev-ref HEAD; popd > /dev/null)
 HWC_VERSION_GIT_SHA := $(shell pushd $(HWC_PATH) > /dev/null; git rev-parse HEAD; popd > /dev/null)
 
-# Build in advanced debugging features if not a pure user build or not simulating one
-ifeq ($(strip $(INTEL_HWC_SIMULATE_USER_BUILD)),true)
-    INTEL_HWC_INTERNAL_BUILD = false
-    INTEL_HWC_LOGVIEWER_BUILD = false
-    INTEL_HWC_DEV_ASSERTS_BUILD = false
-else
-    ifeq ($(strip $(TARGET_BUILD_VARIANT)),userdebug)
-        INTEL_HWC_INTERNAL_BUILD = false
-        INTEL_HWC_LOGVIEWER_BUILD = true
-        INTEL_HWC_DEV_ASSERTS_BUILD = false
-    endif
-    ifneq ($(filter eng,$(TARGET_BUILD_VARIANT))$(filter release-internal,$(BUILD_TYPE)),)
-        INTEL_HWC_INTERNAL_BUILD = true
-        INTEL_HWC_LOGVIEWER_BUILD = true
-        # This causes asserts to be compiled into an engineering build
-        LOCAL_CFLAGS += -DLOG_NDEBUG=0
-        # Optional inclusion of developer asserts
-        ifeq ($(strip $(INTEL_HWC_WANT_DEV_ASSERTS)),true)
-            INTEL_HWC_DEV_ASSERTS_BUILD = true
-        else
-            INTEL_HWC_DEV_ASSERTS_BUILD = false
-        endif
-        LOCAL_STRIP_MODULE := keep_symbols
-    endif
-endif
+
+INTEL_HWC_INTERNAL_BUILD = false
+INTEL_HWC_LOGVIEWER_BUILD = false
+INTEL_HWC_DEV_ASSERTS_BUILD = false
+LOCAL_STRIP_MODULE := keep_symbols
 
 LOCAL_MODULE_TAGS := optional
 LOCAL_CLANG := true
@@ -66,7 +46,7 @@ LOCAL_ADDITIONAL_DEPENDENCIES += $(LOCAL_PATH)/Android.mk
 LOCAL_CFLAGS += -DANDROID_VERSION=$(INTEL_HWC_ANDROID_VERSION)
 LOCAL_CFLAGS += -DTARGET_PRODUCT_$(shell echo $(TARGET_PRODUCT) | tr '[:lower:]' '[:upper:]')
 LOCAL_CFLAGS += -DTARGET_BOARD_PLATFORM_$(shell echo $(TARGET_BOARD_PLATFORM) | tr '[:lower:]' '[:upper:]')
-LOCAL_CFLAGS += -Werror -Wall -Werror=unused-parameter -fvisibility-inlines-hidden -fvisibility=hidden -std=gnu++11
+LOCAL_CFLAGS += -Werror -Wall -Werror=unused-parameter -Wno-unused-private-field -fvisibility-inlines-hidden -fvisibility=hidden -std=gnu++11
 LOCAL_CFLAGS += -Wno-date-time
 LOCAL_CFLAGS += -DLOG_TAG=\"hwc\"
 LOCAL_CFLAGS += -DHWC_VERSION_GIT_BRANCH="\"$(HWC_VERSION_GIT_BRANCH)\""

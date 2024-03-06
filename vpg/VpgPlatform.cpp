@@ -33,8 +33,8 @@ namespace intel {
 namespace ufo {
 namespace hwc {
 
-using namespace intel::ufo::gralloc;
-bool sControlCap = false;
+using namespace grallocclient;
+//bool sControlCap = false;
 
 AbstractPlatform& AbstractPlatform::get()
 {
@@ -44,6 +44,7 @@ AbstractPlatform& AbstractPlatform::get()
 int AbstractPlatform::getDrmHandle()
 {
     int fd;
+/*
 #if defined DRM_NODE_CONTROL
     uint64_t value = 0;
 
@@ -60,6 +61,8 @@ int AbstractPlatform::getDrmHandle()
 #else
         GrallocClient::getInstance().getFd(&fd);
 #endif
+*/
+    fd = drmOpen("i915", NULL);
     LOG_ALWAYS_FATAL_IF( fd == -1, "Unable to get DRM handle");
     return fd;
 }
@@ -73,6 +76,7 @@ VpgPlatform::VpgPlatform() :
 
 VpgPlatform::~VpgPlatform()
 {
+/*
 #if defined DRM_NODE_CONTROL
     int fd = -1;
     fd = Drm::get().getDrmHandle();
@@ -82,6 +86,12 @@ VpgPlatform::~VpgPlatform()
         ALOGD("HWC Close Drm %d",fd);
     }
 #endif
+*/
+    int fd = -1;
+    fd = Drm::get().getDrmHandle();
+
+    drmClose(fd);
+    ALOGD("HWC Close Drm %d",fd);
 }
 
 status_t VpgPlatform::open(Hwc* pHwc)

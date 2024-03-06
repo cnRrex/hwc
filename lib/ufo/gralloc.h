@@ -58,7 +58,7 @@ extern "C" {
 #define INTEL_UFO_GRALLOC_HAVE_FLINK !(INTEL_UFO_GRALLOC_HAVE_PRIME)
 
 // Enable for FB reference counting.
-#define INTEL_UFO_GRALLOC_HAVE_FB_REF_COUNTING 1
+#define INTEL_UFO_GRALLOC_HAVE_FB_REF_COUNTING 0
 // Enable for PAVP query.
 #define INTEL_UFO_GRALLOC_HAVE_QUERY_PAVP_SESSION 1
 // Enable for Media query.
@@ -138,8 +138,8 @@ extern "C" {
 #define INTEL_UFO_GRALLOC_MODULE_PERFORM_SET_BO_TIMESTAMP       30 // (buffer_handle_t, uint64_t)
 #define INTEL_UFO_GRALLOC_MODULE_PERFORM_SET_BO_METADATA        31 // (buffer_handle_t, uint32_t offset, uint32_t size, const void *data)
 #define INTEL_UFO_GRALLOC_MODULE_PERFORM_GET_BO_METADATA        32 // (buffer_handle_t, uint32_t offset, uint32_t size, void *data)
-#define INTEL_UFO_GRALLOC_MODULE_PERFORM_BO_FALLOCATE           33 // (buffer_handle_t, uint32_t mode, uint64_t offset, uint64_t bytes)
-#define INTEL_UFO_GRALLOC_MODULE_PERFORM_GET_BO_SERIAL_NUMBER   34 // (buffer_handle_t, uint64_t *serial)
+//#define INTEL_UFO_GRALLOC_MODULE_PERFORM_BO_FALLOCATE           33 // (buffer_handle_t, uint32_t mode, uint64_t offset, uint64_t bytes)
+//#define INTEL_UFO_GRALLOC_MODULE_PERFORM_GET_BO_SERIAL_NUMBER   34 // (buffer_handle_t, uint64_t *serial)
 //#define INTEL_UFO_GRALLOC_MODULE_PERFORM_SET_BO_FPS             35 // (buffer_handle_t, uint32_t)
 
 #if 1 // reserved for internal use only !
@@ -222,6 +222,7 @@ enum {
  * \see INTEL_UFO_GRALLOC_MODULE_PERFORM_GET_BO_INFO
  * \deprecated
  */
+ /*
 typedef struct intel_ufo_buffer_details_0_t
 {
   union {
@@ -257,11 +258,12 @@ typedef struct intel_ufo_buffer_details_0_t
     intel_ufo_buffer_details_0_t() : magic(sizeof(*this)) { }
 #endif
 } intel_ufo_buffer_details_0_t;
-
+*/
 
 /** Structure with detailed info about allocated buffer.
  * \see INTEL_UFO_GRALLOC_MODULE_PERFORM_GET_BO_INFO
  */
+ /*
 typedef struct intel_ufo_buffer_details_1_t
 {
     uint32_t magic;         // [in] size of this struct
@@ -311,9 +313,39 @@ typedef struct intel_ufo_buffer_details_1_t
     intel_ufo_buffer_details_1_t() : magic(sizeof(*this)) { }
 #endif
 } intel_ufo_buffer_details_1_t;
+*/
+namespace grallocclient {
+//使用猜想的结构
+typedef struct BufferMetaData
+{
+    uint32_t magic;         // magic of minigbm: 0xDCBAABCD
 
-#define INTEL_UFO_GRALLOC_HAVE_BUFFER_DETAILS_0 1
-#define INTEL_UFO_GRALLOC_HAVE_BUFFER_DETAILS_1 1
+    int width;              // 
+    int height;             // 
+    int format;             // droid_format
+    int usage;              // 
+    
+    int prime;              // prime fd \note gralloc retains fd ownership //fd[0]
+
+    uint32_t size;          // buffer size (in bytes)
+
+    uint32_t pitch;         // buffer pitch (in bytes) pixel_stride
+    uint32_t allocWidth;    // allocated buffer width in pixels. allocWidth
+    uint32_t allocHeight;   // allocated buffer height in lines. allocheight
+
+    int allocOffsetX;   // DEPRECATED, DO NOT USE
+    int allocOffsetY;   // DEPRECATED, DO NOT USE
+
+#ifdef __cplusplus
+    BufferMetaData() : magic( 0xDCBAABCD ) { }
+#endif
+
+}BufferMetaData;
+
+}//grallocclient
+
+#define INTEL_UFO_GRALLOC_HAVE_BUFFER_DETAILS_0 0
+#define INTEL_UFO_GRALLOC_HAVE_BUFFER_DETAILS_1 0
 
 /**
  * Buffer details interface
@@ -321,8 +353,8 @@ typedef struct intel_ufo_buffer_details_1_t
  *
  * \see INTEL_UFO_GRALLOC_METADATA_BUFFER_DETAILS_LEVEL
 */
-#define INTEL_UFO_GRALLOC_BUFFER_DETAILS_LEVEL 1
-typedef struct intel_ufo_buffer_details_1_t intel_ufo_buffer_details_t;
+#define INTEL_UFO_GRALLOC_BUFFER_DETAILS_LEVEL 0
+//typedef struct intel_ufo_buffer_details_1_t intel_ufo_buffer_details_t;
 
 
 /** Structure with additional info about buffer that could be changed after allocation.
@@ -363,14 +395,15 @@ typedef struct intel_ufo_buffer_media_details_1_t
 #endif
 } intel_ufo_buffer_media_details_1_t;
 */
-//back to a6 ufo api
+namespace grallocclient {
+//使用gmwv2中的结构
 typedef struct intel_ufo_buffer_media_details_t
 {
     uint32_t magic;             // [in] Size of this struct
     uint32_t pavp_session_id;   // PAVP Session ID.
     uint32_t pavp_instance_id;  // PAVP Instance.
     uint32_t yuv_color_range;   // YUV Color range.
-    uint32_t client_id;         // HWC client ID.
+
     uint32_t is_updated;        // frame updated flag
     uint32_t is_encoded;        // frame encoded flag
     uint32_t is_encrypted;
@@ -379,22 +412,13 @@ typedef struct intel_ufo_buffer_media_details_t
     uint32_t is_mmc_capable;
     uint32_t compression_mode;
     uint32_t codec;
-    struct {
-        uint32_t is_valid;
-        struct {
-            uint32_t left;
-            uint32_t top;
-            uint32_t right;
-            uint32_t bottom;
-        } rect;
-    } dirty;                    // Dirty region hint.
-    uint64_t timestamp;         // cnRrex: assume it exit in M platform
     
 #ifdef __cplusplus
     intel_ufo_buffer_media_details_t() : magic(sizeof(*this)) { }
 #endif
 } intel_ufo_buffer_media_details_t;
 
+}//grallocclient
 
 /**
  * Buffer details interface
@@ -619,8 +643,9 @@ typedef struct intel_ufo_buffer_metadata_t {
  * \see gralloc_module_t::perform
  * \see INTEL_UFO_GRALLOC_MODULE_PERFORM_REGISTER_HWC_PROCS
  */
-typedef struct intel_ufo_hwc_procs_t
-{
+ 
+//typedef struct intel_ufo_hwc_procs_t
+//{
     /* This function will be called by gralloc during processing of alloc() request.
      * It will be called after gralloc initially resolves flexible HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED format.
      * It will be called before gralloc issues any allocation calls into kernel driver.
@@ -639,7 +664,7 @@ typedef struct intel_ufo_hwc_procs_t
      *
      * \note this function field is REQUIRED.
      */
-    int (*pre_buffer_alloc)(const struct intel_ufo_hwc_procs_t* procs, int *width, int *height, int *format, int *usage, uint32_t *fb_format, uint32_t *flags);
+//    int (*pre_buffer_alloc)(const struct intel_ufo_hwc_procs_t* procs, int *width, int *height, int *format, int *usage, uint32_t *fb_format, uint32_t *flags);
 
     /* This function will be called by gralloc during processing of alloc() request.
      * It will be called after only after succesfull buffer memory allocation.
@@ -651,7 +676,7 @@ typedef struct intel_ufo_hwc_procs_t
      *
      * \note this function field is REQUIRED.
      */
-    void (*post_buffer_alloc)(const struct intel_ufo_hwc_procs_t* procs, buffer_handle_t, const intel_ufo_buffer_details_t *details);
+//    void (*post_buffer_alloc)(const struct intel_ufo_hwc_procs_t* procs, buffer_handle_t, const intel_ufo_buffer_details_t *details);
 
     /* This function will be called by gralloc during processing of free() request.
      * It will be called after only after succesfull buffer memory allocation.
@@ -662,11 +687,11 @@ typedef struct intel_ufo_hwc_procs_t
      *
      * \note this function field is REQUIRED.
      */
-    void (*post_buffer_free)(const struct intel_ufo_hwc_procs_t* procs, buffer_handle_t);
+//    void (*post_buffer_free)(const struct intel_ufo_hwc_procs_t* procs, buffer_handle_t);
 
     /* Reserved for future use. Must be NULL. */
-    void *reserved[5];
-} intel_ufo_hwc_procs_t;
+//    void *reserved[5];
+//} intel_ufo_hwc_procs_t;
 
 
 /**
